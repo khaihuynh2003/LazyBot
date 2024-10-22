@@ -1,0 +1,91 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.venv/
+.ENV/
+env.bak/
+ENV.bak/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Hidden directories and files related to system operations or IDEs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Log files
+*.log
+*.out
+*.err
+
+# Database files
+*.sqlite3
+
+# Python virtual environments for virtualenvwrapper
+WORKON_HOME/
+
+# Cache files
+*.cache
+*.pkl
+*.h5
+*.db
+
+# Models and data files (add specific files/directories if needed)
+models/
+# data/
+*.ckpt
+*.pt
+*.hdf5
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.cache/
+coverage.*
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Pytest cache
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pylint reports
+pylint-report.txt
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Files created by JupyterLab or other notebooks
+*.ipynb
+
+# If using Docker
+docker-compose.yml
+Dockerfile
+*.dockerignore
+
+# If using cloud services like Google Colab or AWS
+*.json
+
+# If using Poetry for dependency management
+poetry.lock
+
+llama-2-7b-chat.ggmlv3.q8_0.bin
