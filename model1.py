@@ -51,7 +51,7 @@ def is_topic_change(new_question, chat_history):
     
     # If similarity score is less than a threshold, we consider it a new topic
     print(f"Similarity score: {similarity_score}")
-    return similarity_score < 0.1  # Adjust this threshold as needed
+    return similarity_score < 0.15  # Adjust this threshold as needed
 
 # Function to reset memory based on topic change
 def reset_memory_if_needed(new_question, memory):
