@@ -9,28 +9,34 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 DB_FAISS_PATH = "vectorstores/db_faiss"
 
-custom_prompt_template = """You are a helpful assistant. Use the following conversation history and the most recent question to provide a helpful and concise answer. If you don't know the answer, say so.
+custom_prompt_template = """You are a helpful assistant. Use the following conversation history and context to provide a concise answer, only referencing history when needed.
 
-Conversation History: {history}
+Conversation History: {chat_history}
 
-New Question: {question}
+Context: {context}
+
+Question: {question}
 
 Answer:
 """
+
 def set_custom_prompt():
-    prompt = PromptTemplate(template=custom_prompt_template, input_variables=['history', 'question'])
+    prompt = PromptTemplate(template=custom_prompt_template, input_variables=['chat_history', 'context', 'question'])
     return prompt
 
 def load_llm():
     llm = CTransformers(
         model="llama-2-7b-chat.ggmlv3.q8_0.bin",
         model_type="llama",
-        max_new_tokens=1024,
-        temperature=0.5,
+        config={
+            "max_new_tokens": 2048,
+            "context_length": 4096,
+            "temperature": 0.5
+        }
     )
+    
     return llm
 
-# Function to compute similarity between new question and previous conversation
 # Function to compute similarity between new question and previous conversation
 def compute_similarity(question, previous_question):
     embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
@@ -49,21 +55,22 @@ def is_topic_change(new_question, chat_history):
     last_question = chat_history[-1].content if chat_history else ""
     similarity_score = compute_similarity(new_question, last_question)
     
-    # If similarity score is less than a threshold, we consider it a new topic
-    print(f"Similarity score: {similarity_score}")
     return similarity_score < 0.15  # Adjust this threshold as needed
 
 # Function to reset memory based on topic change
-def reset_memory_if_needed(new_question, memory):
+def reset_memory(new_question, memory):
     if is_topic_change(new_question, memory.chat_memory.messages):
         memory.clear()
 
 def retrieval_qa_chain(llm, db, memory):
+    prompt = set_custom_prompt()
+    
     qa_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=db.as_retriever(search_kwargs={'k': 2}),
         memory=memory,  # Memory for conversation history
         return_source_documents=True,
+        combine_docs_chain_kwargs={"prompt": prompt},  # Pass the custom prompt here
         verbose=True  # Optional for debugging
     )
     return qa_chain
@@ -84,7 +91,7 @@ async def start():
     chain = qa_bot()
     msg = cl.Message(content="Starting the bot....")
     await msg.send()
-    msg.content = "Hi, Welcome to the Hi Bot. What is your query?"
+    msg.content = "Hi, Welcome to the Dr. MedVigor. What is your query?"
     await msg.update()
     cl.user_session.set("chain", chain)
 
@@ -107,7 +114,7 @@ async def main(message):
     chat_history = chain.memory.chat_memory.messages if chain.memory else []
 
     # Reset memory if a topic change is detected
-    reset_memory_if_needed(message.content, chain.memory)
+    reset_memory(message.content, chain.memory)
 
     # Prepare the inputs expected by ConversationalRetrievalChain
     inputs = {
