@@ -1,5 +1,5 @@
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader, TextLoader, DirectoryLoader
+from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 
@@ -10,14 +10,7 @@ DB_FAISS_PATH = "vectorstores/db_faiss"
 def create_vector_db():
     # Load PDF documents
     pdf_loader = DirectoryLoader(DATA_PATH, glob='*.pdf', loader_cls=PyPDFLoader)
-    pdf_documents = pdf_loader.load()
-
-    # Load TXT documents
-    txt_loader = DirectoryLoader(DATA_PATH, glob='*.txt', loader_cls=TextLoader)  # You may need to define TextLoader if not included
-    txt_documents = txt_loader.load()
-
-    # Combine PDF and TXT documents
-    documents = pdf_documents + txt_documents
+    documents = pdf_loader.load()
 
     # Split documents into chunks
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
