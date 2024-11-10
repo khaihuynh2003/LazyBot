@@ -4,7 +4,6 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.llms import CTransformers
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferWindowMemory
-from sklearn.metrics.pairwise import cosine_similarity
 import os
 from dotenv import load_dotenv
 import chainlit as cl
@@ -51,36 +50,10 @@ def load_llm():
     return llm
 
 def initialize_memory():
-    # Initialize memory with a window of the last 2 exchanges
+    # Initialize memory with a window of the last 1 exchange
     return ConversationBufferWindowMemory(
         k=1, memory_key="chat_history", input_key="question", output_key="answer", return_messages=True
     )
-
-
-# Function to compute similarity between new question and previous conversation
-def compute_similarity(question, previous_question):
-    embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
-    
-    # Use embed_query for embedding individual questions
-    question_embedding = embeddings.embed_query(question)
-    prev_embedding = embeddings.embed_query(previous_question)
-    
-    # Calculate cosine similarity
-    similarity = cosine_similarity([question_embedding], [prev_embedding])[0][0]
-    return similarity
-
-
-# Function to check if a topic change has occurred
-def is_topic_change(new_question, chat_history):
-    last_question = chat_history[-1].content if chat_history else ""
-    similarity_score = compute_similarity(new_question, last_question)
-    
-    return similarity_score < 0.15  # Adjust this threshold as needed
-
-# Function to reset memory based on topic change
-def reset_memory(new_question, memory):
-    if is_topic_change(new_question, memory.chat_memory.messages):
-        memory.clear()
 
 def retrieval_qa_chain(llm, db, prompt):
     memory = initialize_memory()
@@ -120,8 +93,8 @@ async def set_starters():
     # Pre-set topics the user can select from to start the conversation
     return [
         cl.Starter(
-            label="Diabetes alert",
-            message="What is diabetes and how to prevent it?",
+            label="Diabetes",
+            message="What is diabetes?",
             icon="public/diabetes.png",
         ),
         cl.Starter(
@@ -163,28 +136,19 @@ async def set_starters():
 
 @cl.on_chat_start
 async def start():
-    # app_user = cl.user_session.get("user")
-    # await cl.Message(f"Hello {app_user.identifier}").send()
-
     # Set up the chain
     chain = qa_bot()
     cl.user_session.set("chain", chain)
-
-    # msg = cl.Message(content="Starting the bot....")
-    # await msg.send()
-    # msg.content = "Hi, Welcome to the Dr. Vigor. How can I help you?"
-    # await msg.update()
 
 
 @cl.on_chat_resume
 async def resume():
     chain = cl.user_session.get("chain")    # Retrieve chain stored in the session
-
+    
     # Check if the chain is not set (in case of a new session)
     if not chain:
         chain = qa_bot()  # Recreate chain if missing
         cl.user_session.set("chain", chain)  # Save chain to the session
-
 
 @cl.on_message
 async def main(message):
@@ -203,9 +167,6 @@ async def main(message):
 
     # Retrieve chat history from the memory (or leave it empty if it's the first message)
     chat_history = chain.memory.chat_memory.messages if chain.memory else []
-
-    # Reset memory if a topic change is detected
-    reset_memory(message.content, chain.memory)
 
     # Prepare the inputs expected by ConversationalRetrievalChain
     inputs = {
