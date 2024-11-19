@@ -1,5 +1,5 @@
 <div align="center">
-  <strong><span style="font-size:32px;">MEDFOOD CHATBOT</span></strong>
+  <strong>MEDFOOD CHATBOT</strong>
 </div>
 
 
