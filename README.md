@@ -1,10 +1,10 @@
-install required python packages
+Install required python packages
 
 Run in vscode terminal
 
-prepare data: python ingest.py
+Prepare data: python ingest.py
 
-run chatbot:
+Run chatbot:
 
 chainlit run model.py -w (retrieve data without history)
 
