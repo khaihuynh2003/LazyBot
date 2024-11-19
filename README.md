@@ -1,3 +1,8 @@
+<div align="center">
+  <strong><span style="font-size:32px;">MEDFOOD CHATBOT</span></strong>
+</div>
+
+
 **Install** required python packages
 
 Run in **Vscode Terminal**
